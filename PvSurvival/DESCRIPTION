@@ -4,9 +4,14 @@ Maintainer: Jeff Laake <Jeff.Laake@noaa.gov>
 Title: Southern Puget Sound Harbor Seal Survival Analysis
 LazyLoad: yes
 Author: Jeff Laake <jeff.laake@noaa.gov>
-Description: This package provides code that uses RMark to analyze
-    resight data of branded harbor seals for survival estimation.
+Description: This package provides code that uses RMark to
+    analyze resight data of branded harbor seals for
+    survival estimation.
 Version: 1.0.0
 Date: 2010-08-11
-Depends: RMark
-Collate: 'extract.pv.r'
+Depends:
+    RMark
+Imports:
+    RODBC
+Collate:
+    'extract.pv.r'

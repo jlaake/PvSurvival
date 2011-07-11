@@ -1,7 +1,40 @@
+
+
+#' Extracts Pv capture histories and covariates
+#' : from ACCESS database, it constructs the relevant capture histories from the
+#' tables. It constructs all the queries that used to be done in ACCESS.
+#' 
+#' 
+#' Attaches directly to ACCESS database and extracts initial tag, recapture and 
+#' resightings information.  
+#'
+#' @import RODBC 
+#' @export
+#' @param file ACCESS database filename
+#' @param dir Directory containing ACCESS database; if empty uses package directory
+#' @param begin month-day at beginning of resight period (615 = June 15)
+#' @param end month-day at end of resight period (1015 = Oct 15)
+#' @return dataframe containing following fields \item{ch}{capture history;
+#'   character string} \item{Speno}{unnique identifier} \item{Brand}{brand identifier}
+#'   \item{BrandYear}{year branded} \item{AgeClass}{Age class P,Y,S,A at time of initial marking}
+#'   \item{Sex}{either M or F; factor variable} \item{Weight}{weight (kg) at time of branding minus sex-specific mean}
+#'   \item{Cohort}{initial birth year}
+#'   \item{td}{sequence of
+#'   fields named tdyyyy with values 0/1; it is 1 if resighted in the prior year}
+#'   \item{TotalTimesResighted}{number of years resighted}
+#'   \item{recap}{0 if never resighted and 1 otherwise}
+#'   \item{Location}{factor variable; Gertrude or Eagle location of animal at initial marking}
+#'   \item{first}{sequence of
+#'   fields named firstyyyy with values 0/1; it is 1 for year it was first branded}
+#'   \item{age}{factor variable of age at first marking} \item{digits}{number of brand digits}
+#' 
+#' @author Jeff Laake
+#' @examples 
+#' pvdata=extract.pv()
 extract.pv <-
-function(file="PvObservations.mdb",dir="C:\\Users\\Jeff Laake\\Desktop\\Workspace\\PvSurvival",begin=615,end=1015)
+function(file="PvObservations.mdb",dir="",begin=615,end=1015)
 {
-	xx=require(RODBC,quietly=TRUE)
+	if(dir=="")dir=system.file(package="PvSurvival")
 	fdir=file.path(dir,file)
 	connection=odbcConnectAccess(fdir)
 	Resight=sqlFetch(connection,"Resight")
@@ -17,19 +50,19 @@ function(file="PvObservations.mdb",dir="C:\\Users\\Jeff Laake\\Desktop\\Workspac
 	Recaptures$Year=as.POSIXlt(Recaptures$DAY)$year+1900
 	Resight$Year=as.POSIXlt(Resight$DAY)$year+1900
 	Resight$mday=as.POSIXlt(Resight$DAY)$mday+100*(as.POSIXlt(Resight$DAY)$mon+1)
-	LimitedResights=subset(Resight,subset=mday<=end&mday>=begin,select=c("Brand","SPENO","Year"))
+	LimitedResights=Resight[Resight$mday<=end&Resight$mday>=begin,c("Brand","SPENO","Year")]
 	BrandResightJoin=merge(Brand,LimitedResights,by="SPENO",all.x=TRUE)
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
 	capture.history=cohort.count.table+resight.count.table
 	capture.history[capture.history>1]=1
 	class(capture.history)="matrix"
-	xx=subset(Brand,select=c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear"))
+	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear")]
 	xx$key=paste(xx$SPENO,xx$BrandYear,sep="")
 	Captures$key=paste(Captures$SPEN0,Captures$Year,sep="")
-	xx=merge(xx,subset(Captures,select=c("key","WEIGHT")),by="key",all.x=TRUE)
+	xx=merge(xx,Captures[,c("key","WEIGHT")],by="key",all.x=TRUE)
 	Recaptures$key=paste(Recaptures$SPENO,Recaptures$Year,sep="")
-	xx=merge(xx,subset(Recaptures,select=c("key","WEIGHT")),by="key",all.x=TRUE)
+	xx=merge(xx,Recaptures[,c("key","WEIGHT")],by="key",all.x=TRUE)
 	xx$AgeClass=factor(toupper(xx$AGECLASS),levels=c("P","Y","S","A"))
 	xx$Sex=factor(toupper(xx$SEX))
 	xx$Weight=xx$WEIGHT.x
