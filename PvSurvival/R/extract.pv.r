@@ -32,15 +32,19 @@
 #' @examples 
 #' pvdata=extract.pv()
 extract.pv <-
-function(file="PvObservations.mdb",dir="",begin=615,end=1015)
+function(file="PvObservations.accdb",dir="",begin=615,end=1015)
 {
 	if(dir=="")dir=system.file(package="PvSurvival")
 	fdir=file.path(dir,file)
-	connection=odbcConnectAccess(fdir)
-	Resight=sqlFetch(connection,"Resight")
+	connection=odbcConnectAccess2007(fdir)
+#   Capture and recapture tables with baseline information
 	Captures=sqlFetch(connection,"Captures")
 	Recaptures=sqlFetch(connection,"Recapture")
+#   List of all branded seals and the year they were branded	
 	Brand=sqlFetch(connection,"All brands")
+#   All resights of branded and tagged animals
+	Resight=sqlFetch(connection,"Resight")
+	
 	names(Brand)[4]="Brand"
 	names(Captures)[12]="Brand"
 	names(Recaptures)[5]="Brand"
@@ -50,13 +54,20 @@ function(file="PvObservations.mdb",dir="",begin=615,end=1015)
 	Recaptures$Year=as.POSIXlt(Recaptures$DAY)$year+1900
 	Resight$Year=as.POSIXlt(Resight$DAY)$year+1900
 	Resight$mday=as.POSIXlt(Resight$DAY)$mday+100*(as.POSIXlt(Resight$DAY)$mon+1)
+#   look at including recaptures into resights
+#   deal with spring captures  -- p/y classification based on date 	
+#   look at including resights outside of 6-15 to 10-15
+
 	LimitedResights=Resight[Resight$mday<=end&Resight$mday>=begin,c("Brand","SPENO","Year")]
 	BrandResightJoin=merge(Brand,LimitedResights,by="SPENO",all.x=TRUE)
+	
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
+
 	capture.history=cohort.count.table+resight.count.table
 	capture.history[capture.history>1]=1
 	class(capture.history)="matrix"
+
 	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear")]
 	xx$key=paste(xx$SPENO,xx$BrandYear,sep="")
 	Captures$key=paste(Captures$SPEN0,Captures$Year,sep="")
@@ -65,6 +76,7 @@ function(file="PvObservations.mdb",dir="",begin=615,end=1015)
 	xx=merge(xx,Recaptures[,c("key","WEIGHT")],by="key",all.x=TRUE)
 	xx$AgeClass=factor(toupper(xx$AGECLASS),levels=c("P","Y","S","A"))
 	xx$Sex=factor(toupper(xx$SEX))
+# compute number with unknown weight by sex/age
 	xx$Weight=xx$WEIGHT.x
 	xx$Weight[is.na(xx$Weight)]=xx$WEIGHT.y[is.na(xx$Weight)]
     means=with(xx[!is.na(xx$Weight),],tapply(Weight,list(AgeClass,Sex),mean))
@@ -102,6 +114,7 @@ function(file="PvObservations.mdb",dir="",begin=615,end=1015)
 	MarkData$digits=6
 	brandnum=as.numeric(as.character(Brand$Brand))
 	brandnum[is.na(brandnum)]=0
+#   see if these are still correct with new one sided brands
 	MarkData$digits[brandnum>0&brandnum<=6]=1
 	MarkData$digits[brandnum>6 & brandnum<=9]=2
 	MarkData$digits[brandnum>9 & brandnum<=99]=4
