@@ -1,17 +1,14 @@
-
-
-#' Extracts Pv capture histories and covariates
-#' : from ACCESS database, it constructs the relevant capture histories from the
+#' Pv capture histories and covariates
+#' 
+#' Extracts data from ACCESS database and constructs the relevant capture histories from the
 #' tables. It constructs all the queries that used to be done in ACCESS.
 #' 
-#' 
-#' Attaches directly to ACCESS database and extracts initial tag, recapture and 
+#' Uses CalcurData package to extract from ACCESS database and extracts initial tag, recapture and 
 #' resightings information.  
 #'
-#' @import RODBC 
+#' @import CalcurData 
 #' @export
-#' @param file ACCESS database filename
-#' @param dir Directory containing ACCESS database; if empty uses package directory
+#' @param dir Directory containing ACCESS database; if NULL uses std location
 #' @param begin month-day at beginning of resight period (615 = June 15)
 #' @param end month-day at end of resight period (1015 = Oct 15)
 #' @return dataframe containing following fields \item{ch}{capture history;
@@ -31,19 +28,15 @@
 #' @author Jeff Laake
 #' @examples 
 #' pvdata=extract.pv()
-extract.pv <-
-function(file="PvObservations.accdb",dir="",begin=615,end=1015)
+extract.pv=function(dir=NULL,begin=615,end=1015)
 {
-	if(dir=="")dir=system.file(package="PvSurvival")
-	fdir=file.path(dir,file)
-	connection=odbcConnectAccess2007(fdir)
 #   Capture and recapture tables with baseline information
-	Captures=sqlFetch(connection,"Captures")
-	Recaptures=sqlFetch(connection,"Recapture")
+	Captures=getCalcurData("Pv","Captures",dir=dir)
+	Recaptures=getCalcurData("Pv","Recapture",dir=dir)
 #   List of all branded seals and the year they were branded	
-	Brand=sqlFetch(connection,"All brands")
+	Brand=getCalcurData("Pv","All brands",dir=dir)
 #   All resights of branded and tagged animals
-	Resight=sqlFetch(connection,"Resight")
+	Resight=getCalcurData("Pv","Resight",dir=dir)
 	
 	names(Brand)[4]="Brand"
 	names(Captures)[12]="Brand"

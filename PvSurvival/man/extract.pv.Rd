@@ -1,17 +1,12 @@
 \name{extract.pv}
 \alias{extract.pv}
-\title{Extracts Pv capture histories and covariates
-: from ACCESS database, it constructs the relevant capture histories from the
-tables. It constructs all the queries that used to be done in ACCESS.}
+\title{Pv capture histories and covariates}
 \usage{
-  extract.pv(file = "PvObservations.mdb", dir = "", begin =
-  615, end = 1015)
+  extract.pv(dir = NULL, begin = 615, end = 1015)
 }
 \arguments{
-  \item{file}{ACCESS database filename}
-
-  \item{dir}{Directory containing ACCESS database; if empty
-  uses package directory}
+  \item{dir}{Directory containing ACCESS database; if NULL
+  uses std location}
 
   \item{begin}{month-day at beginning of resight period
   (615 = June 15)}
@@ -39,8 +34,14 @@ tables. It constructs all the queries that used to be done in ACCESS.}
   \item{digits}{number of brand digits}
 }
 \description{
-  Attaches directly to ACCESS database and extracts initial
-  tag, recapture and resightings information.
+  Extracts data from ACCESS database and constructs the
+  relevant capture histories from the tables. It constructs
+  all the queries that used to be done in ACCESS.
+}
+\details{
+  Uses CalcurData package to extract from ACCESS database
+  and extracts initial tag, recapture and resightings
+  information.
 }
 \examples{
 pvdata=extract.pv()

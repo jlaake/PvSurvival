@@ -1,5 +1,5 @@
 Package: PvSurvival
-License: GPL version 2 or later
+License: GPL(>=2)
 Maintainer: Jeff Laake <Jeff.Laake@noaa.gov>
 Title: Southern Puget Sound Harbor Seal Survival Analysis
 LazyLoad: yes
@@ -8,10 +8,9 @@ Description: This package provides code that uses RMark to
     analyze resight data of branded harbor seals for
     survival estimation.
 Version: 1.0.0
-Date: 2010-08-11
+Date: 2012-04-03
 Depends:
-    RMark
-Imports:
-    RODBC
+    RMark,
+    CalcurData
 Collate:
     'extract.pv.r'
