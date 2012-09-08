@@ -19,27 +19,27 @@ do.pv=function()
 #p.3=list(formula=~time+Location+Sex)
 #p.4=list(formula=~time+Sex)
 #p.5=list(formula=~time+age)
-p.6=list(formula=~time+Location+Sex+age)
-p.7=list(formula=~time+Location+adult:male+age)
-p.8=list(formula=~time+Location+adult:male+age+td)
+#p.6=list(formula=~time+Location+Sex+age)
+#p.7=list(formula=~time+Location+adult:male+age)
+p.8=list(formula=~time+Location+adult:male+age)
 
-#Phi.1=list(formula=~Weight)
+#Phi.1=list(formula=~Weight) - some Weights have NA
 #Phi.2=list(formula=~age)
 
-pup:Weight + non-pup:weight  -- first year
-pre-weaning mortality for last 5 years as covariate
+#pup:Weight + non-pup:weight  -- first year
+#pre-weaning mortality for last 5 years as covariate
 
 	
 #Phi.7=list(formula=~age +Time+Sex)
 #Phi.8=list(formula=~age + age:Time+Sex)
 #Phi.9=list(formula=~age+ Time+age*Sex)
 #Phi.7=list(formula=~age +Time+Sex)
-Phi.10=list(formula=~age+ Time+Sex +first:nonpup)
-Phi.11=list(formula=~age+ pup:time+ Sex)
+#Phi.10=list(formula=~age+ Time+Sex +first:nonpup)
+#Phi.11=list(formula=~age+ pup:time+ Sex)
 
-#Phi.11=list(formula=~age+ Time+Sex +first:nonpup+first:Weight)
+Phi.12=list(formula=~nonpup:age+ pup:time+Sex +first:nonpup+pup:Weight,remove.intercept=TRUE)
 cml=create.model.list("CJS")
 return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE))
 }
-results=do.pv()
-summary(results[[1]],brief=TRUE)
+results1=do.pv()
+summary(results1[[1]],brief=TRUE)

@@ -66,7 +66,10 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	Captures$key=paste(Captures$SPEN0,Captures$Year,sep="")
 	xx=merge(xx,Captures[,c("key","WEIGHT")],by="key",all.x=TRUE)
 	Recaptures$key=paste(Recaptures$SPENO,Recaptures$Year,sep="")
-	xx=merge(xx,Recaptures[,c("key","WEIGHT")],by="key",all.x=TRUE)
+	Recaptures=Recaptures[,c("key","WEIGHT")]
+	xx=merge(xx,Recaptures[!duplicated(Recaptures$key),],by="key",all.x=TRUE)
+	xx$AGECLASS=toupper(xx$AGECLASS)
+	xx$AGECLASS[xx$AGECLASS=="W"]="P"
 	xx$AgeClass=factor(toupper(xx$AGECLASS),levels=c("P","Y","S","A"))
 	xx$Sex=factor(toupper(xx$SEX))
 # compute number with unknown weight by sex/age
