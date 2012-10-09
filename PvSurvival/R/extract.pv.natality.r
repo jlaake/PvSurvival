@@ -1,4 +1,4 @@
-#' Pv capture histories and covariates
+#' Pv capture histories and covariates for natality estimation
 #' 
 #' Extracts data from ACCESS database and constructs the relevant capture histories from the
 #' tables. It constructs all the queries that used to be done in ACCESS.
@@ -28,7 +28,7 @@
 #' @author Jeff Laake
 #' @examples 
 #' pvdata=extract.pv()
-extract.pv=function(dir=NULL,begin=615,end=1015)
+extract.pv.natality=function(dir=NULL,begin=615,end=1015)
 {
 #   Capture and recapture tables with baseline information
 	Captures=getCalcurData("Pv","Captures",dir=dir)
@@ -52,12 +52,12 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
-
+	
 	capture.history=cohort.count.table+resight.count.table
 	capture.history[capture.history>1]=1
 	class(capture.history)="matrix"
-
-	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear","AGEQ")]
+	
+	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear")]
 	xx$key=paste(xx$SPENO,xx$BrandYear,sep="")
 	Captures$key=paste(Captures$SPEN0,Captures$Year,sep="")
 	xx=merge(xx,Captures[,c("key","WEIGHT")],by="key",all.x=TRUE)
@@ -71,12 +71,12 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 # compute number with unknown weight by sex/age
 	xx$Weight=xx$WEIGHT.x
 	xx$Weight[is.na(xx$Weight)]=xx$WEIGHT.y[is.na(xx$Weight)]
-    means=with(xx[!is.na(xx$Weight),],tapply(Weight,list(AgeClass,Sex),mean))
-    indices=cbind(xx$AgeClass,xx$Sex)
+	means=with(xx[!is.na(xx$Weight),],tapply(Weight,list(AgeClass,Sex),mean))
+	indices=cbind(xx$AgeClass,xx$Sex)
 	subtract=means[indices]
 	xx$Wt=xx$Weight
 	xx$Weight=xx$Wt-subtract
-    xx$Cohort=xx$COHORT
+	xx$Cohort=xx$COHORT
 	xx$WEIGHT.x=NULL
 	xx$WEIGHT.y=NULL
 	xx$SEX=NULL
@@ -88,33 +88,30 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	xx1=with(xx,table(SPENO,BrandYear))
 	class(xx1)="matrix"
 	zz=t(apply(xx1,1,cumsum))
-    capture.history=zz*capture.history
+	capture.history=zz*capture.history
 	colnames(capture.history)=paste("td",as.numeric(colnames(capture.history))+1,sep="")
 	colnames(xx1)=paste("first",colnames(xx1),sep="")
 	CaptureHistory=as.data.frame(capture.history)
 	CaptureHistory$SPENO=row.names(CaptureHistory)
 	CaptureHistory=merge(xx,CaptureHistory,by="SPENO",all.x=TRUE)
-	capture.history=CaptureHistory[,-(1:9)]
+	capture.history=CaptureHistory[,-(1:8)]
 	CaptureHistory$TotalTimesResighted=rowSums(capture.history)-1
 	CaptureHistory$recap=ifelse(CaptureHistory$TotalTimesResighted>0,1,0)
 	CaptureHistory$Location=factor(ifelse(CaptureHistory$SITECODE<=10.06,"Gertrude","Eagle"),levels=c("Gertrude","Eagle"))
 	MarkData=data.frame(ch=apply(capture.history,1,paste,collapse=""),stringsAsFactors=FALSE)
 	MarkData=cbind(MarkData,CaptureHistory)
 	MarkData$SITECODE=NULL
-    MarkData=cbind(MarkData,xx1)
+	MarkData=cbind(MarkData,xx1)
 	MarkData$age=factor(MarkData$BrandYear-MarkData$Cohort)
 	MarkData$digits=6
-	suppressWarnings(brandnum<- as.numeric(as.character(Brand$Brand)))
+	brandnum=as.numeric(as.character(Brand$Brand))
+	brandnum[is.na(brandnum)]=0
 #   see if these are still correct with new one sided brands
 	MarkData$digits[brandnum>0&brandnum<=6]=1
 	MarkData$digits[brandnum>6 & brandnum<=9]=2
 	MarkData$digits[brandnum>9 & brandnum<=99]=4
 	MarkData$digits[MarkData$Brand%in%
-			c("v0",paste(">",0:9,sep=""),
-			"0.01","0.02","0.03","0.04","0.05","0.06","0.07","0.08","0.09",
-			paste("C",0:9,sep=""),paste("U",0:9,sep=""),paste("n",0:9,sep=""),paste(")",0:9,sep=""))]=4
-    MarkData$digits[MarkData$BrandYear%in%2010:2011&MarkData$age==0]=2
+					c("v0",paste(">",0:9,sep=""),"0.01","0.02","0.03","0.04","0.05","0.06","0.07","0.08","0.09")]=4
 	return(MarkData)
 }
-
 
