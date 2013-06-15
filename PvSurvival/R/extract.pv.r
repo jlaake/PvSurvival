@@ -52,6 +52,9 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
+	if(ncol(cohort.count.table)<ncol(resight.count.table)) 
+		cohort.count.table=cbind(cohort.count.table,matrix(0,nrow=nrow(cohort.count.table),
+						ncol=ncol(resight.count.table)-ncol(cohort.count.table)))
 
 	capture.history=cohort.count.table+resight.count.table
 	capture.history[capture.history>1]=1
@@ -87,6 +90,9 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 #	xx$Brand=as.character(xx$SPENO)
 	xx1=with(xx,table(SPENO,BrandYear))
 	class(xx1)="matrix"
+	if(ncol(xx1)<ncol(resight.count.table)) 
+		xx1=cbind(xx1,matrix(0,nrow=nrow(xx1),
+						ncol=ncol(resight.count.table)-ncol(xx1)))
 	zz=t(apply(xx1,1,cumsum))
     capture.history=zz*capture.history
 	colnames(capture.history)=paste("td",as.numeric(colnames(capture.history))+1,sep="")
