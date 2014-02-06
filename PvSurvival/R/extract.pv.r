@@ -35,6 +35,7 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	Recaptures=getCalcurData("Pv","Recapture",dir=dir)
 #   List of all branded seals and the year they were branded	
 	Brand=getCalcurData("Pv","All brands",dir=dir)
+	Brand=Brand[Brand$SITECODE%in%c(10.06,10.07),]
 #   All resights of branded and tagged animals
 	Resight=getCalcurData("Pv","Resight",dir=dir)
 	
@@ -45,17 +46,24 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	names(Resight)[4]="Brand"
 	Captures$Year=as.POSIXlt(Captures$DAY)$year+1900
 	Recaptures$Year=as.POSIXlt(Recaptures$DAY)$year+1900
+	Recaptures$mday=as.POSIXlt(Recaptures$DAY)$mday+100*(as.POSIXlt(Recaptures$DAY)$mon+1)
+	Morts=Recaptures[Recaptures$CONDITION%in%c("M","D")&!is.na(Recaptures$Brand),]
+	Recaptures=Recaptures[Recaptures$CONDITION=="A"&Recaptures$mday<=end&Recaptures$mday>=begin&!is.na(Recaptures$mday),]
 	Resight$Year=as.POSIXlt(Resight$DAY)$year+1900
 	Resight$mday=as.POSIXlt(Resight$DAY)$mday+100*(as.POSIXlt(Resight$DAY)$mon+1)
 	LimitedResights=Resight[Resight$mday<=end&Resight$mday>=begin,c("Brand","SPENO","Year")]
+	LimitedResights=rbind(LimitedResights, Recaptures[,c("Brand","SPENO","Year")])
 	BrandResightJoin=merge(Brand,LimitedResights,by="SPENO",all.x=TRUE)
-	
+	Morts$SPENO=factor(as.character(Morts$SPENO),levels=unique(BrandResightJoin$SPENO))
+	Morts=Morts[!is.na(Morts$SPENO),]
+#	intervals=as.Date(paste(1993:2014,"-06-01",sep=""))
+	mort.count.table=table(Morts$SPENO, cut(as.Date(Morts$DAY), as.Date(paste(1993:2014,"-06-01",sep=""))))
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
 	if(ncol(cohort.count.table)<ncol(resight.count.table)) 
 		cohort.count.table=cbind(cohort.count.table,matrix(0,nrow=nrow(cohort.count.table),
 						ncol=ncol(resight.count.table)-ncol(cohort.count.table)))
-
+    colnames(cohort.count.table)=colnames(resight.count.table)
 	capture.history=cohort.count.table+resight.count.table
 	capture.history[capture.history>1]=1
 	class(capture.history)="matrix"
@@ -94,17 +102,21 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 		xx1=cbind(xx1,matrix(0,nrow=nrow(xx1),
 						ncol=ncol(resight.count.table)-ncol(xx1)))
 	zz=t(apply(xx1,1,cumsum))
+	colnames(zz)=colnames(resight.count.table)
     capture.history=zz*capture.history
 	colnames(capture.history)=paste("td",as.numeric(colnames(capture.history))+1,sep="")
 	colnames(xx1)=paste("first",colnames(xx1),sep="")
 	CaptureHistory=as.data.frame(capture.history)
 	CaptureHistory$SPENO=row.names(CaptureHistory)
 	CaptureHistory=merge(xx,CaptureHistory,by="SPENO",all.x=TRUE)
-	capture.history=CaptureHistory[,-(1:9)]
+	#capture.history=CaptureHistory[,-(1:9)]
 	CaptureHistory$TotalTimesResighted=rowSums(capture.history)-1
 	CaptureHistory$recap=ifelse(CaptureHistory$TotalTimesResighted>0,1,0)
 	CaptureHistory$Location=factor(ifelse(CaptureHistory$SITECODE<=10.06,"Gertrude","Eagle"),levels=c("Gertrude","Eagle"))
-	MarkData=data.frame(ch=apply(capture.history,1,paste,collapse=""),stringsAsFactors=FALSE)
+	fullmat=matrix(NA,nrow=nrow(capture.history),ncol=2*ncol(capture.history))
+	fullmat[,seq(1,ncol(fullmat),2)]=capture.history
+	fullmat[,seq(2,ncol(fullmat),2)]=mort.count.table
+	MarkData=data.frame(ch=apply(fullmat,1,paste,collapse=""),stringsAsFactors=FALSE)
 	MarkData=cbind(MarkData,CaptureHistory)
 	MarkData$SITECODE=NULL
     MarkData=cbind(MarkData,xx1)
@@ -120,6 +132,7 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 			"0.01","0.02","0.03","0.04","0.05","0.06","0.07","0.08","0.09",
 			paste("C",0:9,sep=""),paste("U",0:9,sep=""),paste("n",0:9,sep=""),paste(")",0:9,sep=""))]=4
     MarkData$digits[MarkData$BrandYear%in%2010:2011&MarkData$age==0]=2
+	MarkData$recovered=rowSums(mort.count.table)
 	return(MarkData)
 }
 
