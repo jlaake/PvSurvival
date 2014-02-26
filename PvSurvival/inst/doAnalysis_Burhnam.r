@@ -1,12 +1,22 @@
+# for windows
 library(PvSurvival)
 library(RMark)
 setwd("C:\\Users\\JLaake\\git\\PvSurvival\\Analysis")
 rm(list=ls())
 load(".Rdata")
-
 pv=extract.pv(dir="")
+# write.table(pv,file="pvdata.txt") ; to create file for 
+
+# for Linux
+library(RMark)
+setwd("PvAnalysis")
+rm(list=ls())
+load(".RData")
+pv=read.table("pvdata.txt",colClasses=c(ch="character"))
+pv$age=factor(pv$age)
+
 pv$digits[pv$SPENO==705]=1
-pv=pv[!pv$Brand%in%c("229","229.1","232","232.1","473","473.1","564","661","487"),]
+pv=pv[!pv$Brand%in%c("229","229.1","232","232.1","473","473.1","564"),]
 pv$digits2=ifelse(pv$digits==2,1,0)
 pv$digits4=ifelse(pv$digits==4,1,0)
 pv$digits6=ifelse(pv$digits==6,1,0)
@@ -51,43 +61,14 @@ do.pv=function()
 # p models
 #p.1=list(formula=~time+Location+ageclass+td)
 #p.2=list(formula=~time+Location+ageclass+Sex+td)
-p.3=list(formula=~time+Location+ageclass+adult:male+td)
-#p.4=list(formula=~time+Location+Sex*ageclass+td)
-#p.5=list(formula=~time+Location+ageclass)
-#p.6=list(formula=~time+Location+ageclass+Sex)
-#p.7=list(formula=~time+Location+ageclass+adult:male)
-#p.8=list(formula=~time+Location+Sex*ageclass)
+#p.3=list(formula=~time+Location+ageclass+adult:male+td)
+p.4=list(formula=~time+Location+Sex*ageclass+td)
+p.5=list(formula=~time+Location+ageclass)
+p.6=list(formula=~time+Location+ageclass+Sex)
+p.7=list(formula=~time+Location+ageclass+adult:male)
+p.8=list(formula=~time+Location+Sex*ageclass)
 
 #S models
-
-S.20=list(formula=~Sex+ageclass+pup:Time)
-S.21=list(formula=~Sex+ageclass+pup:Time+brandaspup:pup:digits)
-S.22=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits)
-S.23=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.24=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-#r.1=list(formula=~1)
-#r.2=list(formula=~pup)
-#r.3=list(formula=~pup+timebin)
-r.4=list(formula=~Age+timebin)
-
-
-#F.1=list(formula=~1)
-F.2=list(formula=~1,fixed=1)
-
-# create model list and run
-cml=create.model.list("Burnham")
-return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE))
-}
-results_burnham1=do.pv()
-head(results_burnham1$model.table)
-
-# Release gof test
-pv.rel=pv
-pv.rel$age=factor(cut(as.numeric(as.character(pv$age)),c(0,1,2,4,50),right=FALSE))
-pv.proc.rel=process.data(pv.rel,model="CJS",groups=c("Sex","Location","age"),age.var=3,initial.ages=c(0,1,2,4),begin.time=1993)
-release.gof(pv.proc.rel)
-
 S.1=list(formula=~ageclass)
 S.2=list(formula=~Sex+ageclass)
 S.3=list(formula=~Sex+ageclass+Time)
@@ -110,6 +91,13 @@ S.16=list(formula=~Sex+ageclass1*Time+brandaspup:pup:digits)
 S.17=list(formula=~Sex+ageclass1*Time+brandaspup:digits)
 S.18=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
 S.19=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+
+S.20=list(formula=~Sex+ageclass+pup:Time)
+S.21=list(formula=~Sex+ageclass+pup:Time+brandaspup:pup:digits)
+S.22=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits)
+S.23=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+S.24=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+
 S.25=list(formula=~Sex*ageclass+Time)
 S.26=list(formula=~Sex*ageclass+Time+brandaspup:pup:digits)
 S.27=list(formula=~Sex*ageclass+Time+brandaspup:digits)
@@ -133,6 +121,99 @@ S.42=list(formula=~Sex*ageclass+pup:Time+brandaspup:pup:digits)
 S.43=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits)
 S.44=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
 S.45=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+
+
+r.1=list(formula=~1)
+r.2=list(formula=~pup)
+r.3=list(formula=~pup+timebin)
+r.4=list(formula=~Age+timebin)
+
+F.1=list(formula=~1)
+#F.2=list(formula=~1,fixed=1)
+
+# create model list and run
+cml=create.model.list("Burnham")
+return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE,threads=12,external=TRUE))
+}
+results_burnham=do.pv()
+
+
+head(results_burnham$model.table)
+
+head(pv.ddl$S)
+head(pv.ddl$S,30)
+2011-1993
+indices
+length(indices)
+covariate.predictions(results_burnham1[[3]],data=data,indices=indices[1:19])$estimates
+table(pv$Cohort,pv$digits)
+table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits))
+table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits))[,12:23])
+table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits))[,12:23]
+table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits))[12:23,]
+table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits))
+(table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits)))[12:23,]
+prop=(table(pv$Cohort,pv$digits)/rowSums(table(pv$Cohort,pv$digits)))
+dim(prop)
+prop[12:30,]
+estimates=covariate.predictions(results_burnham1[[3]],data=data,indices=indices[1:19])$estimates
+dim(estimates)
+head(estimates)
+data=data.frame(digits=c(1,2,4,6),brandaspup=rep(1,4))
+estimates=covariate.predictions(results_burnham1[[3]],data=data,indices=indices[1:19])$estimates
+head(estimates)
+matrix(estimates$estimate,ncol=4,nrow=19)
+matrix(estimates$estimate,ncol=4,nrow=19)*prop[12:30,]
+rowSums(matrix(estimates$estimate,ncol=4,nrow=19)*prop[12:30,])
+prop
+barplot(rowSums(matrix(estimates$estimate,ncol=4,nrow=19)*prop[12:30,]))
+plot(1993:2011,rowSums(matrix(estimates$estimate,ncol=4,nrow=19)*prop[12:30,]),type="b")
+
+indicesF=pv.ddl$S$model.index[pv.ddl$S$age==0&pv.ddl$S$Sex=="F"]
+indicesM=pv.ddl$S$model.index[pv.ddl$S$age==0&pv.ddl$S$Sex=="M"]
+estimatesF=covariate.predictions(results_burnham1[[3]],data=data,indices=indicesF[1:19])
+estimatesM=covariate.predictions(results_burnham1[[3]],data=data,indices=indicesM[1:19])
+vcM=estimatesM$vcv
+vcF=estimatesF$vcv
+estimatesF=estimatesF$estimates
+estimatesM=estimatesM$estimates
+
+pvM=pv[pv$Sex=="M",]
+pvM$Cohort=factor(pvM$Cohort,levels=sort(unique(pv$Cohort)))
+pvF=pv[pv$Sex=="F",]
+pvF$Cohort=factor(pvF$Cohort,levels=sort(unique(pv$Cohort)))
+propM=(table(pvM$Cohort,pvM$digits)/rowSums(table(pvM$Cohort,pvM$digits)))
+propM=propM[12:30,]
+propF=(table(pvF$Cohort,pvF$digits)/rowSums(table(pvF$Cohort,pvF$digits)))
+propF=propF[12:30,]
+
+varlist=split(estimatesM$vcv.index,rep(1:19,times=4))
+varpupM=NULL
+for (i in 1:length(varlist))
+   varpupM=c(varpupM,t(propM[i,])%*%vcM[varlist[[i]],varlist[[i]]]%*%propM[i,])
+
+varlist=split(estimatesF$vcv.index,rep(1:19,times=4))
+varpupF=NULL
+for (i in 1:length(varlist))
+   varpupF=c(varpupF,t(propF[i,])%*%vcF[varlist[[i]],varlist[[i]]]%*%propF[i,])
+
+pdf("PvPupSurvival.pdf")
+par(mfrow=c(2,1))
+plot(1993:2011,rowSums(matrix(estimatesF$estimate,ncol=4,nrow=19)*propF),type="b",xlab="Birth year",ylab="Female pup survival",pch="F",ylim=c(0,.8))
+lines(1993:2011,rowSums(matrix(estimatesF$estimate,ncol=4,nrow=19)*propF)-2*sqrt(varpupF),type="l",lty=2)
+lines(1993:2011,rowSums(matrix(estimatesF$estimate,ncol=4,nrow=19)*propF)+2*sqrt(varpupF),type="l",lty=2)
+
+plot(1993:2011,rowSums(matrix(estimatesM$estimate,ncol=4,nrow=19)*propM),type="b",xlab="Birth year",ylab="Male pup survival",pch="M",ylim=c(0,.8))
+lines(1993:2011,rowSums(matrix(estimatesM$estimate,ncol=4,nrow=19)*propM)-2*sqrt(varpupM),type="l",lty=2)
+lines(1993:2011,rowSums(matrix(estimatesM$estimate,ncol=4,nrow=19)*propM)+2*sqrt(varpupM),type="l",lty=2)
+dev.off()
+
+
+# Release gof test
+pv.rel=pv
+pv.rel$age=factor(cut(as.numeric(as.character(pv$age)),c(0,1,2,4,50),right=FALSE))
+pv.proc.rel=process.data(pv.rel,model="CJS",groups=c("Sex","Location","age"),age.var=3,initial.ages=c(0,1,2,4),begin.time=1993)
+release.gof(pv.proc.rel)
 
 
 # natality data
