@@ -52,16 +52,19 @@ pv.ddl$S$timebin1=cut(pv.ddl$S$Time,c(0,10,21),right=FALSE)
 # Add r (recovery) design data
 pv.ddl$r$pup=ifelse(pv.ddl$r$Age==0 ,1,0)
 pv.ddl$r$timebin=cut(pv.ddl$r$Time,c(0,10,21),right=FALSE,labels=c("1993-2002","2003-2013"))
-
+# read in pre wean mortality covariate
+preweanmort=read.table("PreWeanMort.txt",header=T)
+names(preweanmort)[1]="time"
+pv.ddl$S=merge_design.covariates(pv.ddl$S,preweanmort)
 #pv.ddl$Phi$EstAge=ifelse(pv.ddl$Phi$AGEQ=="E",1,0)
 #pv.ddl$Phi$ActAge=1-pv.ddl$Phi$EstAge
 # Model fitting function
 do.pv=function()
 {
 # p models
-#p.1=list(formula=~time+Location+ageclass+td)
-#p.2=list(formula=~time+Location+ageclass+Sex+td)
-#p.3=list(formula=~time+Location+ageclass+adult:male+td)
+p.1=list(formula=~time+Location+ageclass+td)
+p.2=list(formula=~time+Location+ageclass+Sex+td)
+p.3=list(formula=~time+Location+ageclass+adult:male+td)
 p.4=list(formula=~time+Location+Sex*ageclass+td)
 p.5=list(formula=~time+Location+ageclass)
 p.6=list(formula=~time+Location+ageclass+Sex)
@@ -122,11 +125,18 @@ S.43=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits)
 S.44=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
 S.45=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
 
+S.46=list(formula=~Sex*ageclass+pup:PreWeanMort)
+S.47=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:pup:digits)
+S.48=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits)
+S.49=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+S.50=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
 
-r.1=list(formula=~1)
-r.2=list(formula=~pup)
-r.3=list(formula=~pup+timebin)
-r.4=list(formula=~Age+timebin)
+#r.1=list(formula=~1)
+#r.2=list(formula=~pup)
+#r.3=list(formula=~pup+timebin)
+#r.4=list(formula=~Age+timebin)
+# add this model
+r.5=list(formula=~pup*timebin)
 
 F.1=list(formula=~1)
 #F.2=list(formula=~1,fixed=1)
@@ -135,8 +145,10 @@ F.1=list(formula=~1)
 cml=create.model.list("Burnham")
 return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE,threads=12,external=TRUE))
 }
-results_burnham=do.pv()
+results_burnham2=do.pv()
 
+# cross tab of sex-ageclasses by month
+# use mdeian chat gof without digits in the model
 
 head(results_burnham$model.table)
 
@@ -303,7 +315,7 @@ plot(1994:2010,summary(results[[83]])$reals$Phi[[1]]$pim[1,-1],ylim=c(.5,1))
 
 # Proportion observed by age for known aged animals
 pv=extract.pv()
-pv=pv[pv$AGEQ=="A",]
+pv=pv[pv$AGEQ%in%c("A","T"),]
 pv$Age=as.numeric(as.character(pv$age))
 possible.F=matrix(0,nrow=30,ncol=2011-1993)
 for(year in 1994:2011)
