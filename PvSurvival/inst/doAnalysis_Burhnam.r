@@ -4,7 +4,7 @@ library(RMark)
 setwd("C:\\Users\\JLaake\\git\\PvSurvival\\Analysis")
 rm(list=ls())
 load(".Rdata")
-pv=extract.pv(dir="")
+pv=extract.pv(dir=NULL)
 # write.table(pv,file="pvdata.txt") ; to create file for 
 
 # for Linux
@@ -62,90 +62,99 @@ pv.ddl$S=merge_design.covariates(pv.ddl$S,preweanmort)
 do.pv=function()
 {
 # p models
-p.1=list(formula=~time+Location+ageclass+td)
-p.2=list(formula=~time+Location+ageclass+Sex+td)
-p.3=list(formula=~time+Location+ageclass+adult:male+td)
-p.4=list(formula=~time+Location+Sex*ageclass+td)
-p.5=list(formula=~time+Location+ageclass)
-p.6=list(formula=~time+Location+ageclass+Sex)
-p.7=list(formula=~time+Location+ageclass+adult:male)
-p.8=list(formula=~time+Location+Sex*ageclass)
-
+	p.1=list(formula=~time+Location+ageclass+td)
+	p.2=list(formula=~time+Location+ageclass+Sex+td)
+	p.3=list(formula=~time+Location+ageclass+adult:male+td)
+	p.4=list(formula=~time+Location+Sex*ageclass+td)
+	p.5=list(formula=~time+Location+ageclass)
+	p.6=list(formula=~time+Location+ageclass+Sex)
+	p.7=list(formula=~time+Location+ageclass+adult:male)
+	p.8=list(formula=~time+Location+Sex*ageclass)
+	
 #S models
-S.1=list(formula=~ageclass)
-S.2=list(formula=~Sex+ageclass)
-S.3=list(formula=~Sex+ageclass+Time)
-S.4=list(formula=~Sex+ageclass+time)
-S.5=list(formula=~Sex+ageclass+Time)
-
-S.6=list(formula=~Sex+ageclass+Time+brandaspup:pup:digits)
-S.7=list(formula=~Sex+ageclass+Time+brandaspup:digits)
-S.8=list(formula=~Sex+ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.9=list(formula=~Sex+ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.10=list(formula=~Sex+ageclass+time)
-S.11=list(formula=~Sex+ageclass+time+brandaspup:pup:digits)
-S.12=list(formula=~Sex+ageclass+time+brandaspup:digits)
-S.13=list(formula=~Sex+ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.14=list(formula=~Sex+ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.15=list(formula=~Sex+ageclass1*Time)
-S.16=list(formula=~Sex+ageclass1*Time+brandaspup:pup:digits)
-S.17=list(formula=~Sex+ageclass1*Time+brandaspup:digits)
-S.18=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.19=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.20=list(formula=~Sex+ageclass+pup:Time)
-S.21=list(formula=~Sex+ageclass+pup:Time+brandaspup:pup:digits)
-S.22=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits)
-S.23=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.24=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.25=list(formula=~Sex*ageclass+Time)
-S.26=list(formula=~Sex*ageclass+Time+brandaspup:pup:digits)
-S.27=list(formula=~Sex*ageclass+Time+brandaspup:digits)
-S.28=list(formula=~Sex*ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.29=list(formula=~Sex*ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.30=list(formula=~Sex*ageclass+time)
-S.31=list(formula=~Sex*ageclass+time+brandaspup:pup:digits)
-S.32=list(formula=~Sex*ageclass+time+brandaspup:digits)
-S.33=list(formula=~Sex*ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.34=list(formula=~Sex*ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.35=list(formula=~Sex*ageclass+ageclass1:Time)
-S.36=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:pup:digits)
-S.37=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits)
-S.38=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.39=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.41=list(formula=~Sex*ageclass+pup:Time)
-S.42=list(formula=~Sex*ageclass+pup:Time+brandaspup:pup:digits)
-S.43=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits)
-S.44=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.45=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-S.46=list(formula=~Sex*ageclass+pup:PreWeanMort)
-S.47=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:pup:digits)
-S.48=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits)
-S.49=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
-S.50=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
-
-#r.1=list(formula=~1)
-#r.2=list(formula=~pup)
-#r.3=list(formula=~pup+timebin)
-#r.4=list(formula=~Age+timebin)
+	S.1=list(formula=~ageclass)
+	S.2=list(formula=~Sex+ageclass)
+	S.3=list(formula=~Sex+ageclass+Time)
+	S.4=list(formula=~Sex+ageclass+time)
+	S.5=list(formula=~Sex*ageclass+Time)
+	
+	S.6=list(formula=~Sex+ageclass+Time+brandaspup:pup:digits)
+	S.7=list(formula=~Sex+ageclass+Time+brandaspup:digits)
+	S.8=list(formula=~Sex+ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.9=list(formula=~Sex+ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.10=list(formula=~Sex+ageclass+time)
+	S.11=list(formula=~Sex+ageclass+time+brandaspup:pup:digits)
+	S.12=list(formula=~Sex+ageclass+time+brandaspup:digits)
+	S.13=list(formula=~Sex+ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.14=list(formula=~Sex+ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.15=list(formula=~Sex+ageclass1*Time)
+	S.16=list(formula=~Sex+ageclass1*Time+brandaspup:pup:digits)
+	S.17=list(formula=~Sex+ageclass1*Time+brandaspup:digits)
+	S.18=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.19=list(formula=~Sex+ageclass1*Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.20=list(formula=~Sex+ageclass+pup:Time)
+	S.21=list(formula=~Sex+ageclass+pup:Time+brandaspup:pup:digits)
+	S.22=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits)
+	S.23=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.24=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.25=list(formula=~Sex*ageclass+Time)
+	S.26=list(formula=~Sex*ageclass+Time+brandaspup:pup:digits)
+	S.27=list(formula=~Sex*ageclass+Time+brandaspup:digits)
+	S.28=list(formula=~Sex*ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.29=list(formula=~Sex*ageclass+Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.30=list(formula=~Sex*ageclass+time)
+	S.31=list(formula=~Sex*ageclass+time+brandaspup:pup:digits)
+	S.32=list(formula=~Sex*ageclass+time+brandaspup:digits)
+	S.33=list(formula=~Sex*ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.34=list(formula=~Sex*ageclass+time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.35=list(formula=~Sex*ageclass+ageclass1:Time)
+	S.36=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:pup:digits)
+	S.37=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits)
+	S.38=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.39=list(formula=~Sex*ageclass+ageclass1:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.41=list(formula=~Sex*ageclass+pup:Time)
+	S.42=list(formula=~Sex*ageclass+pup:Time+brandaspup:pup:digits)
+	S.43=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits)
+	S.44=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.45=list(formula=~Sex*ageclass+pup:Time+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.46=list(formula=~Sex*ageclass+pup:PreWeanMort)
+	S.47=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:pup:digits)
+	S.48=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits)
+	S.49=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6)
+	S.50=list(formula=~Sex*ageclass+pup:PreWeanMort+brandaspup:digits2 +brandaspup:digits4 + brandaspup:digits6+ brandasnonpup:digits)
+	
+	S.51=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits+brandasyr:digits)
+	S.52=list(formula=~Sex+ageclass+pup:Time+brandaspup:digits2+brandaspup:digits4+brandaspup:digits6+brandasyr:digits)
+	
+	S.53=list(formula=~Sex+ageclass+pup:day+brandaspup:digits)
+	S.54=list(formula=~Sex+ageclass+pup:day+brandaspup:digits2+brandaspup:digits4+brandaspup:digits6)
+	
+	S.55=list(formula=~Sex+ageclass+pup:Time+pup:day+brandaspup:digits)
+	S.56=list(formula=~Sex+ageclass+pup:Time+pup:day+brandaspup:digits2+brandaspup:digits4+brandaspup:digits6)
+	
+	r.1=list(formula=~1)
+	r.2=list(formula=~pup)
+	r.3=list(formula=~pup+timebin)
+	r.4=list(formula=~Age+timebin)
 # add this model
-r.5=list(formula=~pup*timebin)
-
-F.1=list(formula=~1)
+	r.5=list(formula=~pup*timebin)
+	
+	F.1=list(formula=~1)
 #F.2=list(formula=~1,fixed=1)
-
+	
 # create model list and run
-cml=create.model.list("Burnham")
-return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE,threads=12,external=TRUE))
+	cml=create.model.list("Burnham")
+	return(mark.wrapper(cml,data=pv.proc,ddl=pv.ddl,output=FALSE,threads=12,external=TRUE))
 }
-results_burnham2=do.pv()
+results_burnham=do.pv()
 
 # cross tab of sex-ageclasses by month
 # use mdeian chat gof without digits in the model

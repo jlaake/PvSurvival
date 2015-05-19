@@ -68,7 +68,7 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 	capture.history[capture.history>1]=1
 	class(capture.history)="matrix"
 
-	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear","AGEQ")]
+	xx=Brand[,c("Brand","SPENO","SEX","COHORT","SITECODE","AGECLASS","BrandYear","AGEQ","DAY")]
 	xx$key=paste(xx$SPENO,xx$BrandYear,sep="")
 	Captures$key=paste(Captures$SPEN0,Captures$Year,sep="")
 	xx=merge(xx,Captures[,c("key","WEIGHT")],by="key",all.x=TRUE)
@@ -133,6 +133,7 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 			paste("C",0:9,sep=""),paste("U",0:9,sep=""),paste("n",0:9,sep=""),paste(")",0:9,sep=""))]=4
     MarkData$digits[MarkData$BrandYear%in%2010:2011&MarkData$age==0]=2
 	MarkData$recovered=rowSums(mort.count.table)
+	MarkData$day=as.numeric(MarkData$DAY-as.POSIXct(paste(MarkData$BrandYear,"08-01",sep="-")))
 	return(MarkData)
 }
 
