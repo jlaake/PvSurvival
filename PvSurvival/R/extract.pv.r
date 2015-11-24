@@ -59,6 +59,8 @@ extract.pv=function(dir=NULL,begin=615,end=1015)
 #	intervals=as.Date(paste(1993:2014,"-06-01",sep=""))
 	mort.count.table=table(Morts$SPENO, cut(as.Date(Morts$DAY), as.Date(paste(1993:2014,"-06-01",sep=""))))
 	resight.count.table=with(BrandResightJoin,table(SPENO,Year))
+	miscol=ncol(resight.count.table)-ncol(mort.count.table)
+	if(miscol>0) mort.count.table=cbind(mort.count.table,matrix(0,nrow=nrow(mort.count.table),ncol=miscol))
 	cohort.count.table=with(BrandResightJoin,table(SPENO,BrandYear))
 	if(ncol(cohort.count.table)<ncol(resight.count.table)) 
 		cohort.count.table=cbind(cohort.count.table,matrix(0,nrow=nrow(cohort.count.table),
